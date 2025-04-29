@@ -55,6 +55,10 @@ namespace Server_for_SDRSharp
             AddMessage("        -SDRSHarp(port IP and sample rate");
             AddMessage("     -Start Radio SDRSHarp(or stop and start");
             buttonStartServer.Enabled = false;
+            textBoxNEmissionForAllFiles.Text = "2";
+            textBoxNEmissionForEachFile.Text = "1";
+            textBoxTempoBetweenFile.Text = "10";
+            this.Text = $"TCP server for SDRSharp V{ Application.ProductVersion}";
         }
         #endregion
         #region private functions
@@ -197,7 +201,10 @@ namespace Server_for_SDRSharp
         {
             if (buttonStartServer.Text == ClassConstMessage.STARTSERVER) //already change for stop
             {
- 
+                labelSampleRate.Text = "";
+                labelNbSendingForEachFile.Text = "";
+                labelNbSendingForAllFiles.Text = "";
+                labelNumFile.Text = "";
                 if (Files == null || Files.Count() == 0)
                 {
                     MessageBox.Show("Choose files", "Start", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -324,8 +331,10 @@ namespace Server_for_SDRSharp
         private void FormServerForSDRSharp_FormClosing(object sender, FormClosingEventArgs e)
         {
             Stop();
-            myClassServerTCP?.Dispose();
-            myClassServerTCP = null;
+            if(myClassServerTCP!=null)
+            {
+                myClassServerTCP = null;
+            }
         }
         #endregion
 
@@ -343,4 +352,5 @@ namespace Server_for_SDRSharp
         }
     }
 }
+
 

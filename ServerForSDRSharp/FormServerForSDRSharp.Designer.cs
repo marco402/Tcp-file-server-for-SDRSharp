@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.groupBoxTCPServer = new System.Windows.Forms.GroupBox();
+            this.buttonHelp = new System.Windows.Forms.Button();
             this.labelSampleRate = new System.Windows.Forms.Label();
             this.labelNumFile = new System.Windows.Forms.Label();
             this.labelNbSendingForAllFiles = new System.Windows.Forms.Label();
@@ -47,15 +48,14 @@
             this.buttonStartServer = new System.Windows.Forms.Button();
             this.richTextBoxMessages = new System.Windows.Forms.RichTextBox();
             this.tableLayoutPanelMain = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonConcateneRawIQ = new System.Windows.Forms.Button();
-            this.buttonClearMessages = new System.Windows.Forms.Button();
-            this.buttonConcateneWav = new System.Windows.Forms.Button();
-            this.buttonInfosWav = new System.Windows.Forms.Button();
-            this.buttonMessageToClipBoard = new System.Windows.Forms.Button();
-            this.buttonExtractCu8 = new System.Windows.Forms.Button();
-            this.buttongenereWavTest = new System.Windows.Forms.Button();
             this.groupBoxServer = new System.Windows.Forms.GroupBox();
-            this.buttonHelp = new System.Windows.Forms.Button();
+            this.buttongenereWavTest = new System.Windows.Forms.Button();
+            this.buttonExtractCu8 = new System.Windows.Forms.Button();
+            this.buttonMessageToClipBoard = new System.Windows.Forms.Button();
+            this.buttonInfosWav = new System.Windows.Forms.Button();
+            this.buttonConcateneWav = new System.Windows.Forms.Button();
+            this.buttonClearMessages = new System.Windows.Forms.Button();
+            this.buttonConcateneRawIQ = new System.Windows.Forms.Button();
             this.groupBoxTCPServer.SuspendLayout();
             this.tableLayoutPanelMain.SuspendLayout();
             this.groupBoxServer.SuspendLayout();
@@ -87,6 +87,18 @@
             this.groupBoxTCPServer.TabIndex = 6;
             this.groupBoxTCPServer.TabStop = false;
             this.groupBoxTCPServer.Text = "TCP server for Source RTL-SDR TCP";
+            // 
+            // buttonHelp
+            // 
+            this.buttonHelp.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.buttonHelp.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonHelp.Location = new System.Drawing.Point(296, 157);
+            this.buttonHelp.Name = "buttonHelp";
+            this.buttonHelp.Size = new System.Drawing.Size(67, 24);
+            this.buttonHelp.TabIndex = 27;
+            this.buttonHelp.Text = "Help";
+            this.buttonHelp.UseVisualStyleBackColor = false;
+            this.buttonHelp.Click += new System.EventHandler(this.buttonHelp_Click);
             // 
             // labelSampleRate
             // 
@@ -291,88 +303,6 @@
             this.tableLayoutPanelMain.Size = new System.Drawing.Size(387, 220);
             this.tableLayoutPanelMain.TabIndex = 24;
             // 
-            // buttonConcateneRawIQ
-            // 
-            this.buttonConcateneRawIQ.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.buttonConcateneRawIQ.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonConcateneRawIQ.Location = new System.Drawing.Point(411, 80);
-            this.buttonConcateneRawIQ.Name = "buttonConcateneRawIQ";
-            this.buttonConcateneRawIQ.Size = new System.Drawing.Size(123, 47);
-            this.buttonConcateneRawIQ.TabIndex = 1;
-            this.buttonConcateneRawIQ.Text = "Concatenate Raw IQ";
-            this.buttonConcateneRawIQ.UseVisualStyleBackColor = false;
-            this.buttonConcateneRawIQ.Click += new System.EventHandler(this.buttonConcateneRawIQ_Click);
-            // 
-            // buttonClearMessages
-            // 
-            this.buttonClearMessages.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.buttonClearMessages.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonClearMessages.Location = new System.Drawing.Point(540, 144);
-            this.buttonClearMessages.Name = "buttonClearMessages";
-            this.buttonClearMessages.Size = new System.Drawing.Size(62, 41);
-            this.buttonClearMessages.TabIndex = 20;
-            this.buttonClearMessages.Text = "Clear messages";
-            this.buttonClearMessages.UseVisualStyleBackColor = false;
-            this.buttonClearMessages.Click += new System.EventHandler(this.buttonClearMessages_Click);
-            // 
-            // buttonConcateneWav
-            // 
-            this.buttonConcateneWav.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.buttonConcateneWav.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonConcateneWav.Location = new System.Drawing.Point(411, 144);
-            this.buttonConcateneWav.Name = "buttonConcateneWav";
-            this.buttonConcateneWav.Size = new System.Drawing.Size(123, 42);
-            this.buttonConcateneWav.TabIndex = 2;
-            this.buttonConcateneWav.Text = "Concatenate Wav";
-            this.buttonConcateneWav.UseVisualStyleBackColor = false;
-            this.buttonConcateneWav.Click += new System.EventHandler(this.buttonConcateneWav_Click);
-            // 
-            // buttonInfosWav
-            // 
-            this.buttonInfosWav.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.buttonInfosWav.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonInfosWav.Location = new System.Drawing.Point(411, 22);
-            this.buttonInfosWav.Name = "buttonInfosWav";
-            this.buttonInfosWav.Size = new System.Drawing.Size(123, 47);
-            this.buttonInfosWav.TabIndex = 0;
-            this.buttonInfosWav.Text = "Infos Wav file";
-            this.buttonInfosWav.UseVisualStyleBackColor = false;
-            this.buttonInfosWav.Click += new System.EventHandler(this.buttonInfosWav_Click);
-            // 
-            // buttonMessageToClipBoard
-            // 
-            this.buttonMessageToClipBoard.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.buttonMessageToClipBoard.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonMessageToClipBoard.Location = new System.Drawing.Point(608, 136);
-            this.buttonMessageToClipBoard.Name = "buttonMessageToClipBoard";
-            this.buttonMessageToClipBoard.Size = new System.Drawing.Size(63, 49);
-            this.buttonMessageToClipBoard.TabIndex = 19;
-            this.buttonMessageToClipBoard.Text = "Message to clipboard";
-            this.buttonMessageToClipBoard.UseVisualStyleBackColor = false;
-            this.buttonMessageToClipBoard.Click += new System.EventHandler(this.buttonMessageToClipBoard_Click);
-            // 
-            // buttonExtractCu8
-            // 
-            this.buttonExtractCu8.Location = new System.Drawing.Point(783, 80);
-            this.buttonExtractCu8.Name = "buttonExtractCu8";
-            this.buttonExtractCu8.Size = new System.Drawing.Size(83, 32);
-            this.buttonExtractCu8.TabIndex = 4;
-            this.buttonExtractCu8.Text = "extract cu8";
-            this.buttonExtractCu8.UseVisualStyleBackColor = true;
-            this.buttonExtractCu8.Visible = false;
-            this.buttonExtractCu8.Click += new System.EventHandler(this.buttonExtractCu8_Click);
-            // 
-            // buttongenereWavTest
-            // 
-            this.buttongenereWavTest.Location = new System.Drawing.Point(686, 80);
-            this.buttongenereWavTest.Name = "buttongenereWavTest";
-            this.buttongenereWavTest.Size = new System.Drawing.Size(91, 32);
-            this.buttongenereWavTest.TabIndex = 3;
-            this.buttongenereWavTest.Text = "genere wav test";
-            this.buttongenereWavTest.UseVisualStyleBackColor = true;
-            this.buttongenereWavTest.Visible = false;
-            this.buttongenereWavTest.Click += new System.EventHandler(this.buttongenereWavTest_Click);
-            // 
             // groupBoxServer
             // 
             this.groupBoxServer.Controls.Add(this.groupBoxTCPServer);
@@ -390,17 +320,87 @@
             this.groupBoxServer.TabIndex = 23;
             this.groupBoxServer.TabStop = false;
             // 
-            // buttonHelp
+            // buttongenereWavTest
             // 
-            this.buttonHelp.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.buttonHelp.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonHelp.Location = new System.Drawing.Point(296, 157);
-            this.buttonHelp.Name = "buttonHelp";
-            this.buttonHelp.Size = new System.Drawing.Size(67, 24);
-            this.buttonHelp.TabIndex = 27;
-            this.buttonHelp.Text = "Help";
-            this.buttonHelp.UseVisualStyleBackColor = false;
-            this.buttonHelp.Click += new System.EventHandler(this.buttonHelp_Click);
+            this.buttongenereWavTest.Location = new System.Drawing.Point(686, 80);
+            this.buttongenereWavTest.Name = "buttongenereWavTest";
+            this.buttongenereWavTest.Size = new System.Drawing.Size(91, 32);
+            this.buttongenereWavTest.TabIndex = 3;
+            this.buttongenereWavTest.Text = "genere wav test";
+            this.buttongenereWavTest.UseVisualStyleBackColor = true;
+            this.buttongenereWavTest.Visible = false;
+            this.buttongenereWavTest.Click += new System.EventHandler(this.buttongenereWavTest_Click);
+            // 
+            // buttonExtractCu8
+            // 
+            this.buttonExtractCu8.Location = new System.Drawing.Point(783, 80);
+            this.buttonExtractCu8.Name = "buttonExtractCu8";
+            this.buttonExtractCu8.Size = new System.Drawing.Size(83, 32);
+            this.buttonExtractCu8.TabIndex = 4;
+            this.buttonExtractCu8.Text = "extract cu8";
+            this.buttonExtractCu8.UseVisualStyleBackColor = true;
+            this.buttonExtractCu8.Visible = false;
+            this.buttonExtractCu8.Click += new System.EventHandler(this.buttonExtractCu8_Click);
+            // 
+            // buttonMessageToClipBoard
+            // 
+            this.buttonMessageToClipBoard.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.buttonMessageToClipBoard.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonMessageToClipBoard.Location = new System.Drawing.Point(608, 136);
+            this.buttonMessageToClipBoard.Name = "buttonMessageToClipBoard";
+            this.buttonMessageToClipBoard.Size = new System.Drawing.Size(63, 49);
+            this.buttonMessageToClipBoard.TabIndex = 19;
+            this.buttonMessageToClipBoard.Text = "Message to clipboard";
+            this.buttonMessageToClipBoard.UseVisualStyleBackColor = false;
+            this.buttonMessageToClipBoard.Click += new System.EventHandler(this.buttonMessageToClipBoard_Click);
+            // 
+            // buttonInfosWav
+            // 
+            this.buttonInfosWav.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.buttonInfosWav.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonInfosWav.Location = new System.Drawing.Point(411, 22);
+            this.buttonInfosWav.Name = "buttonInfosWav";
+            this.buttonInfosWav.Size = new System.Drawing.Size(123, 47);
+            this.buttonInfosWav.TabIndex = 0;
+            this.buttonInfosWav.Text = "Infos Wav file";
+            this.buttonInfosWav.UseVisualStyleBackColor = false;
+            this.buttonInfosWav.Click += new System.EventHandler(this.buttonInfosWav_Click);
+            // 
+            // buttonConcateneWav
+            // 
+            this.buttonConcateneWav.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.buttonConcateneWav.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonConcateneWav.Location = new System.Drawing.Point(411, 144);
+            this.buttonConcateneWav.Name = "buttonConcateneWav";
+            this.buttonConcateneWav.Size = new System.Drawing.Size(123, 42);
+            this.buttonConcateneWav.TabIndex = 2;
+            this.buttonConcateneWav.Text = "Concatenate Wav";
+            this.buttonConcateneWav.UseVisualStyleBackColor = false;
+            this.buttonConcateneWav.Click += new System.EventHandler(this.buttonConcateneWav_Click);
+            // 
+            // buttonClearMessages
+            // 
+            this.buttonClearMessages.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.buttonClearMessages.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonClearMessages.Location = new System.Drawing.Point(540, 144);
+            this.buttonClearMessages.Name = "buttonClearMessages";
+            this.buttonClearMessages.Size = new System.Drawing.Size(62, 41);
+            this.buttonClearMessages.TabIndex = 20;
+            this.buttonClearMessages.Text = "Clear messages";
+            this.buttonClearMessages.UseVisualStyleBackColor = false;
+            this.buttonClearMessages.Click += new System.EventHandler(this.buttonClearMessages_Click);
+            // 
+            // buttonConcateneRawIQ
+            // 
+            this.buttonConcateneRawIQ.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.buttonConcateneRawIQ.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonConcateneRawIQ.Location = new System.Drawing.Point(411, 80);
+            this.buttonConcateneRawIQ.Name = "buttonConcateneRawIQ";
+            this.buttonConcateneRawIQ.Size = new System.Drawing.Size(123, 47);
+            this.buttonConcateneRawIQ.TabIndex = 1;
+            this.buttonConcateneRawIQ.Text = "Concatenate Raw IQ";
+            this.buttonConcateneRawIQ.UseVisualStyleBackColor = false;
+            this.buttonConcateneRawIQ.Click += new System.EventHandler(this.buttonConcateneRawIQ_Click);
             // 
             // FormServerForSDRSharp
             // 

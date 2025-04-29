@@ -58,15 +58,21 @@ namespace Server_for_SDRSharp
             Thread.EndCriticalRegion();
             return true;
         }
-        internal static byte[] getDataFile(String fileName)
+        internal static byte[] getDataFile(String fileName,ref String messageRaw)
         {
             if (File.Exists(fileName))
             {
-                using (BinaryReader reader = new BinaryReader(File.Open(fileName, FileMode.Open)))
+                try {
+                    using (BinaryReader reader = new BinaryReader(File.Open(fileName, FileMode.Open)))
+                    {
+                        byte[] dataIQ = new byte[reader.BaseStream.Length];
+                        dataIQ = reader.ReadBytes((Int32)reader.BaseStream.Length);
+                        return dataIQ;
+                    }
+                }
+                catch(Exception ex)
                 {
-                    byte[] dataIQ = new byte[reader.BaseStream.Length];
-                    dataIQ = reader.ReadBytes((Int32)reader.BaseStream.Length);
-                    return dataIQ;
+                    messageRaw = ex.Message;
                 }
             }
             return null;

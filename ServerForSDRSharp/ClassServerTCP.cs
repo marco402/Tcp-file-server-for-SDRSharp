@@ -143,10 +143,13 @@ namespace Server_for_SDRSharp
                         }
                         else
                         {
-                            
-                            byteSend = ClassUtils.getDataFile(file);
-                            if (byteSend.Length == 0)
+                            String messageRaw = "";
+                            byteSend = ClassUtils.getDataFile(file, ref messageRaw);
+                            if (byteSend==null || byteSend.Length == 0||messageRaw!="")
+                            {
+                                OnMessageReceived($"{file} : {messageRaw} ");
                                 continue;
+                            }
                             sampleRate = WavRecorder.GetSampleRateFromName(file);
                             {
                                 if (UsedSampleRate == 0 && sampleRate!=-1)
@@ -201,15 +204,22 @@ namespace Server_for_SDRSharp
 
         internal void Stop()
         {
-            Server?.Stop();
-            Server = null;
             EndReceptTCP = false;
+            //Server = null;
         }
 
         public void Dispose()
         {
-            ((IDisposable)stream).Dispose();
-            ((IDisposable)client).Dispose();
+            if(client != null)
+            {
+                client.Close();
+               ((IDisposable)client).Dispose();
+            }
+            if(stream!=null)
+            {
+                stream.Close();
+               ( (IDisposable)stream).Dispose();
+            }
         }
 
         private Int32 _PortTCP;
