@@ -15,6 +15,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Server_for_SDRSharp
 {
@@ -74,7 +75,162 @@ namespace Server_for_SDRSharp
                 return null;
             }
         }
-        private void AddMessage(string message)
+
+
+        /// <summary>
+        /// tri les fichiers en fonction du sample rate au plus proche des sample rate de la source SDRSharp RTL-SDR_TCP 
+        /// </summary>
+        /// <param name="listFiles"></param>
+        private Dictionary<string, string> triSampleRate(string[] Files, List<int> listSampleRate)
+        {
+            int sampleRate = 0;
+            Dictionary<string, string> listFiles = new Dictionary<string, string>();
+            foreach (String file in Files)
+            {
+                int nearSampleRate = 0;
+                int deltaSampleRate = int.MaxValue;
+                //string F=WavRecorder.GetFrequencyFromName(file);
+                sampleRate = WavRecorder.GetSampleRateFromName(file);
+                if (sampleRate == -1)
+                    listFiles.Add(file, listSampleRate[0].ToString());
+                else {
+                    foreach (int sr in listSampleRate)
+                    {
+                        if (Math.Abs(sampleRate - sr) < deltaSampleRate)
+                        {
+                            nearSampleRate = sr;
+                            deltaSampleRate = sampleRate - sr;
+ 
+                            if (deltaSampleRate == 0)
+                             break;
+                        }
+                    }
+                    listFiles.Add( file,nearSampleRate.ToString());
+                }
+            }
+            return listFiles;
+
+        }
+
+            //#elif TESTRECURSIF && !TESTBATCH
+            //            try
+            //            {
+            //                //from https://github.com/merbanan/rtl_433_tests/tree/master
+            //                //Set a variable to the My Documents path.
+            //                string srcPath = "C:\\marc\\tnt\\fichiers_cu8_et_wav\\fichiers_cu8\\rtl_433_tests-master\\tests";   // Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            //        string dstPath = "C:\\marc\\tnt\\fichiers_cu8_et_wav\\regroupes_rtl_433_tests-master"; //create folder
+            //        Int32 lenPath = srcPath.Length + 1;
+            //        var files = from file in Directory.EnumerateFiles(srcPath, "*.cu8", SearchOption.AllDirectories)
+            //                        //from line in File.ReadLines(file)
+            //                        //where line.Contains(".cu8")
+            //                    select new
+            //                    {
+            //                        File = file,
+            //                        //Line = line
+            //                    };
+            //        //String memoDirectory = "";
+            //        Int32 cptFile = 0;
+            //                foreach (var f in files)
+            //                {
+            //                    try
+            //                    {
+            //                        String directory = Path.GetDirectoryName(f.File);
+            //        //if (!(memoDirectory == directory))
+            //        //{
+
+            //        String newFile = directory.Substring(lenPath).Replace("\\", "_") + "_" + cptFile.ToString() + "_" + Path.GetFileName($"{f.File}");
+            //        Debug.WriteLine(newFile);
+            //                            Debug.WriteLine(dstPath + "\\" + newFile);
+
+            //                            File.Copy($"{f.File}", dstPath + "\\" + newFile);
+            //                            //memoDirectory = directory;
+            //                            cptFile ++;
+            //                        //}
+            //                    }
+            //                    catch (Exception ex)
+            //                    {
+            //                        Debug.WriteLine(ex.Message);
+            //                    }
+            //                }
+            //                Debug.WriteLine(cptFile.ToString());
+
+
+            //            }
+            //            catch (UnauthorizedAccessException uAEx)
+            //            {
+            //                Debug.WriteLine(uAEx.Message);
+            //            }
+            //            catch (PathTooLongException pathEx)
+            //            {
+            //                Debug.WriteLine(pathEx.Message);
+            //            }
+            //            if (cptPb == 0)
+            //                MessageBox.Show("Translate is completed", "Translate cu8 to wav", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //            else
+            //                MessageBox.Show("Translate is NOT completed", "Translate cu8 to wav", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //#elif TESTBATCH
+
+            //            //generate batch file for replay with RTL_433 console mode->dstFile
+            //            //put srcPath,dstFile 
+            //            //and PathRtl433_EXE where you are compiled RTL_433
+            //            //run SDRSharp, enabled plugin and cu8 to Wav
+            //            //open Console to PathRtl433_EXE
+            //            //run AllFiles.bat
+
+            //            string srcPath = "C:\\marc\\tnt\\fichiers_cu8_et_wav\\fichiers_cu8\\rtl_433_tests-master\\rtl_433_tests-master";   // Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            //string dstFile = "C:\\marc\\tnt\\rtl_433\\rtl_433-master_06052024\\vs17_32\\Debug\\FilesRTL433AllOK.bat ";
+            //var files = from file in Directory.EnumerateFiles(srcPath, "*.cu8", SearchOption.AllDirectories)
+            //            select new
+            //            {
+            //                File = file,
+            //            };
+            //Int32 cptFile = 0;
+            //            try
+            //            {
+            //                using (Stream stream = new FileStream(dstFile, FileMode.Create, FileAccess.Write, FileShare.None))
+            //                {
+            //                    String Line = "";
+            //String PathRtl433_EXE = "C:\\marc\\tnt\\rtl_433\\rtl_433-master_06052024\\vs17_32\\Debug\\rtl_433";
+
+            //StreamWriter str = new StreamWriter(stream);
+            //str.WriteLine("cls");
+            //                    str.WriteLine("REM: "+DateTime.Now);
+            //                    foreach (var file in files)
+            //                    {
+            //                        Int32 sampleRate = 0;
+            //Int32 sampleRateFromFileName = wavRecorder.getSampleRateFromName(file.File); //lacrosse_g2750_915M_1000k.cu8,9_ford-unlock002.cu8
+            //                        if (sampleRateFromFileName == -1)
+            //                        {
+            //                            sampleRateFromFileName = 250;
+            //                            sampleRate = 250000;
+            //                            //MessageBox.Show("No sample rate detected in the file name", "Cancel", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //                            //return -1;
+            //                        }
+            //                        else
+            //                            sampleRate = sampleRateFromFileName;
+
+            //                        String Option = " -s " + sampleRate.ToString() + " -C si -r ";
+
+            //Line = PathRtl433_EXE + Option + file.File;
+            //                        str.WriteLine(Line);
+            //                        cptFile ++;
+            //                        if(cptFile%20==0)
+            //                            str.WriteLine("Pause");
+            //                    }
+            //                    str.Flush();
+            //                }
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                Debug.WriteLine(ex.Message);
+            //            }
+            //            MessageBox.Show("Copyfile is completed for "+ cptFile.ToString() + " files", "Translate cu8 nameFile with options to batch file", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //#endif
+
+
+
+
+            private void AddMessage(string message)
         {
             if (InvokeRequired)
             {
@@ -290,7 +446,10 @@ namespace Server_for_SDRSharp
         }
         private void buttonExtractCu8_Click(object sender, EventArgs e)
         {
-            AddMessage(ClassRaw.ExtractFiles("", "", ""));
+            string srcPath = "C:\\marc\\tnt\\fichiers_cu8_et_wav\\fichiers_cu8\\rtl_433_tests-master\\tests";   // Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string dstPath = "C:\\marc\\tnt\\fichiers_cu8_et_wav\\regroupes_rtl_433_tests-master"; //create folder
+            string ext = "cu8";
+            AddMessage(ClassRaw.ExtractFiles(srcPath, dstPath, ext));
         }
         private void buttongenereWavTest_Click(object sender, EventArgs e)
         {
@@ -312,9 +471,22 @@ namespace Server_for_SDRSharp
         {
             e.Handled = testCharNum(e.KeyChar);
         }
+        Dictionary<string, string> listFiles;  // = new Dictionary<string, string>();
+        List<int> sampleRate = new List<int>() ;
         private void buttonChooseFiles_Click(object sender, EventArgs e)
         {
+            sampleRate.Add(250000);    //put this [0] if not sample rate in name file
+            sampleRate.Add(900000);
+            sampleRate.Add(1024000);
+            sampleRate.Add(1400000);
+            sampleRate.Add(1800000);
+            sampleRate.Add(1920000);
+            sampleRate.Add(2048000);
+            sampleRate.Add(2400000);
+            sampleRate.Add(2800000);
+            sampleRate.Add(3200000);
             Files = getFiles("*.*");
+            listFiles=triSampleRate(Files,sampleRate);
             AddMessage($"{ClassConstMessage.NBFILES}  {Files?.Count()}");
 
         }

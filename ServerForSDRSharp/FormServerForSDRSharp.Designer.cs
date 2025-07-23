@@ -284,7 +284,7 @@
             this.richTextBoxMessages.Dock = System.Windows.Forms.DockStyle.Fill;
             this.richTextBoxMessages.Location = new System.Drawing.Point(3, 223);
             this.richTextBoxMessages.Name = "richTextBoxMessages";
-            this.richTextBoxMessages.Size = new System.Drawing.Size(381, 59);
+            this.richTextBoxMessages.Size = new System.Drawing.Size(880, 59);
             this.richTextBoxMessages.TabIndex = 22;
             this.richTextBoxMessages.Text = "";
             // 
@@ -300,7 +300,7 @@
             this.tableLayoutPanelMain.RowCount = 2;
             this.tableLayoutPanelMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 220F));
             this.tableLayoutPanelMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelMain.Size = new System.Drawing.Size(387, 220);
+            this.tableLayoutPanelMain.Size = new System.Drawing.Size(886, 220);
             this.tableLayoutPanelMain.TabIndex = 24;
             // 
             // groupBoxServer
@@ -316,7 +316,7 @@
             this.groupBoxServer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxServer.Location = new System.Drawing.Point(3, 3);
             this.groupBoxServer.Name = "groupBoxServer";
-            this.groupBoxServer.Size = new System.Drawing.Size(381, 214);
+            this.groupBoxServer.Size = new System.Drawing.Size(880, 214);
             this.groupBoxServer.TabIndex = 23;
             this.groupBoxServer.TabStop = false;
             // 
@@ -407,7 +407,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(387, 220);
+            this.ClientSize = new System.Drawing.Size(886, 220);
             this.Controls.Add(this.tableLayoutPanelMain);
             this.Name = "FormServerForSDRSharp";
             this.Text = "TCP server for SDRSharp";

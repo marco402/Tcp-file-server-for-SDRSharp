@@ -116,9 +116,16 @@ namespace Server_for_SDRSharp
             String sampleRateStr;
             fileName = Path.GetFileName(fileName);
             sampleRateStr = GetString(fileName, "k");
-            if (sampleRateStr != "" && Int32.TryParse(sampleRateStr, out Int32 sampleRate))
-                return sampleRate * 1000;
-            else
+            if (sampleRateStr != "" && Int32.TryParse(sampleRateStr, out Int32 sampleRatek))
+                return sampleRatek * 1000;
+            //else  //particular case where frek and samplerate ending by M_
+            //{
+                sampleRateStr = GetString(fileName, "M");
+            //sampleRateStr = sampleRateStr.Replace(".", ",");
+            if (sampleRateStr != "" && float.TryParse(sampleRateStr, out float sampleRateM))
+                    return (int)(sampleRateM * 1000000);
+            //}
+             //else
                 return -1;
         }
         internal static string GetFrequencyFromName(String fileName)
@@ -155,6 +162,7 @@ namespace Server_for_SDRSharp
                         }
                     }
                 }
+                retString = retString.Replace(".", ",");
                 if ( float.TryParse(retString, out float ret))   //found for another unit
                     break;
             }
