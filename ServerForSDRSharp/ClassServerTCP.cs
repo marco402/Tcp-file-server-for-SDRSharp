@@ -10,25 +10,28 @@
  All text above must be included in any redistribution.
   **********************************************************************************/
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Server_for_SDRSharp
 {
     class ClassServerTCP: IDisposable
     {
-         string[] _Files;
+         //string[] _Files;
+        internal Dictionary<string, string> _listFiles;
          Boolean EndReceptTCP = false;
          private TcpListener Server;
          private TcpClient client;
          public event EventHandler<string> MessageReceived;
          NetworkStream stream;
 
-        public async Task Start()
+        public async Task Start(int sampleRat)
         {
                 try
                 {
@@ -38,7 +41,7 @@ namespace Server_for_SDRSharp
                     if (client != null)
                     {
                         OnMessageReceived($"Connected! Client IP: {client.Client.RemoteEndPoint}");
-                        _ = HandleClientAsync(client);
+                        _ = HandleClientAsync(client, sampleRat);
                     }
                  }
                 else
@@ -54,7 +57,7 @@ namespace Server_for_SDRSharp
                     {
                         client = await Server.AcceptTcpClientAsync();
                         OnMessageReceived($"Connected! Client IP: {client.Client.RemoteEndPoint}");
-                        _ = HandleClientAsync(client);
+                        _ = HandleClientAsync(client, sampleRat);
                     }
                 }
             }
@@ -69,19 +72,25 @@ namespace Server_for_SDRSharp
 
             }
         }
-
-        private async Task HandleClientAsync(TcpClient client)
+        int memoSampleRate = -1;
+        private async Task HandleClientAsync(TcpClient client, int UsedSampleRate)
         {
             stream = client.GetStream();
             Int32 NFile = 0;
-            Int32 UsedSampleRate = 0;
+            //Int32 UsedSampleRate = 0;
+            if (UsedSampleRate != 0 && memoSampleRate!=UsedSampleRate)
+            {
+                MessageBox.Show($"Select sample on SDRSharp:{UsedSampleRate}","Choose sample rate", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                OnMessageReceived($"{ClassConstMessage.SAMPLERATE} {UsedSampleRate}");
+                memoSampleRate = UsedSampleRate;
+            }
             while (EndReceptTCP)
             {
                 for (Int32 EmissionForAllFiles = 0; EmissionForAllFiles < _NEmissionForAllFiles; EmissionForAllFiles++)
                 {
                     OnMessageReceived($"{ClassConstMessage.RESTLOOPALLFILE}{EmissionForAllFiles+1}/{_NEmissionForAllFiles}");
                     NFile = 0;
-                    foreach (String file in _Files)
+                    foreach (KeyValuePair<string, string> file in _listFiles)
                     {
                         float[] L = null;
                         float[] R = null;
@@ -91,29 +100,36 @@ namespace Server_for_SDRSharp
                         byte[] byteSend = null;
                         Int32 sampleRate = 0;
 
-                        if (Path.GetExtension(file) == ".wav")
-                        {
-                            if (!ClassWav.readWav(file, ref byteArray, ref R, ref L, ref size, false, ref message, ref sampleRate))
+                        if (Path.GetExtension(file.Key) == ".wav")
+                         {
+                            if (!ClassWav.readWav(file.Key, ref byteArray, ref R, ref L, ref size, false, ref message, ref sampleRate))
                             {
-                                OnMessageReceived($"{message} for {file}");
+                                OnMessageReceived($"{message} for {file.Key}");
                                 continue;
                             }
-                            else
+                            int sr = 0;
+                            Int32.TryParse(file.Value, out sr);
+                            if (UsedSampleRate != sr)    // sampleRate && sampleRate !=-1)  //for raw if not sample rate from name keep file
                             {
-                                if(UsedSampleRate == 0)
-                                {
-                                    UsedSampleRate = sampleRate;
-                                    OnMessageReceived($"{ClassConstMessage.SAMPLERATE} {UsedSampleRate}");
-                                }
+                                OnMessageReceived($"different sample rate for {file.Key}");
+                                continue;
                             }
-                            if(UsedSampleRate != sampleRate)
+                            //else
+                            //{
+                            //    if (UsedSampleRate == 0)
+                            //    {
+                            //        UsedSampleRate = sampleRate;
+                            //        OnMessageReceived($"{ClassConstMessage.SAMPLERATE} {UsedSampleRate}");
+                            //    }
+                            //}
+                            if (UsedSampleRate != sampleRate)
                             {
-                                OnMessageReceived($"different sample rate for {file}");
+                                //OnMessageReceived($"different sample rate for {file.Key}");
                                 continue;
                             }
                             NFile += 1;
-                            OnMessageReceived($"{ClassConstMessage.NUMFILE}{NFile}/{_Files.Count()}");
-                            OnMessageReceived(file);
+                            OnMessageReceived($"{ClassConstMessage.NUMFILE}{NFile}/{_listFiles.Count()}");
+                            OnMessageReceived(file.Key);
                             byteSend = new byte[L.Length];
                             ClassUtils.ConvertFloatToByte(L, byteSend);
                             for (Int32 EmissionForEachFile = 0; EmissionForEachFile < _NEmissionForEachFile; EmissionForEachFile++)
@@ -144,28 +160,30 @@ namespace Server_for_SDRSharp
                         else
                         {
                             String messageRaw = "";
-                            byteSend = ClassUtils.getDataFile(file, ref messageRaw);
+                            byteSend = ClassUtils.getDataFile(file.Key, ref messageRaw);
                             if (byteSend==null || byteSend.Length == 0||messageRaw!="")
                             {
-                                OnMessageReceived($"{file} : {messageRaw} ");
+                                OnMessageReceived($"{file.Key} : {messageRaw} ");
                                 continue;
                             }
-                            sampleRate = WavRecorder.GetSampleRateFromName(file);
+                            // sampleRate = WavRecorder.GetSampleRateFromName(file.Key);
+                            //{
+                            //    if (UsedSampleRate == 0 && sampleRate!=-1)
+                            //    {
+                            //        UsedSampleRate = sampleRate;
+                            //        OnMessageReceived($"{ClassConstMessage.SAMPLERATE} {UsedSampleRate}");
+                            //    }
+                            //}
+                            int sr = 0; 
+                            Int32.TryParse(file.Value,out sr);
+                            if (UsedSampleRate != sr)    // sampleRate && sampleRate !=-1)  //for raw if not sample rate from name keep file
                             {
-                                if (UsedSampleRate == 0 && sampleRate!=-1)
-                                {
-                                    UsedSampleRate = sampleRate;
-                                    OnMessageReceived($"{ClassConstMessage.SAMPLERATE} {UsedSampleRate}");
-                                }
-                            }
-                            if (UsedSampleRate != sampleRate && sampleRate !=-1)  //for raw if not sample rate from name keep file
-                            {
-                                OnMessageReceived($"different sample rate for {file}");
+                                OnMessageReceived($"different sample rate for {file.Key}");
                                 continue;
                             }
                             NFile += 1;
-                            OnMessageReceived($"{ClassConstMessage.NUMFILE}{NFile}/{_Files.Count()}");
-                            OnMessageReceived(file);
+                            OnMessageReceived($"{ClassConstMessage.NUMFILE}{NFile}/{_listFiles.Count()}");
+                            OnMessageReceived(file.Key);
                             for (Int32 EmissionForEachFile = 0; EmissionForEachFile < _NEmissionForEachFile; EmissionForEachFile++)
                             {
                                 OnMessageReceived($"{ClassConstMessage.RESTLOOPFILE}{EmissionForEachFile+1}/{_NEmissionForEachFile}");
@@ -254,12 +272,21 @@ namespace Server_for_SDRSharp
                 _PortTCP = value;
             }
         }
-        internal string[] Files
+
+        internal Dictionary<string, string> listFiles
         {
             set
             {
-                _Files = value;
+                _listFiles = value;
             }
         }
-     }
+
+        //internal string[] Files
+        //{
+        //    set
+        //    {
+        //        _Files = value;
+        //    }
+        //}
+    }
 }

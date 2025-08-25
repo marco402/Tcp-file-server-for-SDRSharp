@@ -16,6 +16,9 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
+using System.Diagnostics;
+using System.Globalization;
 
 namespace Server_for_SDRSharp
 {
@@ -27,6 +30,7 @@ namespace Server_for_SDRSharp
 
         #endregion
         #region declare
+        System.Windows.Forms.RadioButton[] radioButtonsSR;
         private ClassServerTCP myClassServerTCP = null;
         private string[] Files;
         private Int32 tempoBetweenFile = 0;
@@ -38,7 +42,43 @@ namespace Server_for_SDRSharp
         public FormServerForSDRSharp()
         {
             InitializeComponent();
-         
+
+            sampleRate.Add(250000);    //put this [0] if not sample rate in name file
+            sampleRate.Add(900000);
+            sampleRate.Add(1024000);
+            sampleRate.Add(1400000);
+            sampleRate.Add(1800000);
+            sampleRate.Add(1920000);
+            sampleRate.Add(2048000);
+            sampleRate.Add(2400000);
+            sampleRate.Add(2800000);
+            sampleRate.Add(3200000);
+            int i = 0;
+            radioButtonsSR = new System.Windows.Forms.RadioButton[sampleRate.Count()+1];
+            foreach (int sr in sampleRate)
+            {
+                radioButtonsSR[i] = new RadioButton();
+                radioButtonsSR[i].Text = sampleRate[i].ToString();
+                radioButtonsSR[i].Location = new System.Drawing.Point(10, 10 + i * 20);
+                radioButtonsSR[i].ForeColor = System.Drawing.SystemColors.Control;
+                radioButtonsSR[i].UseVisualStyleBackColor = true;
+                radioButtonsSR[i].Size = new System.Drawing.Size(85, 17);
+                radioButtonsSR[i].Tag=sampleRate[i].ToString();
+                this.groupBoxRbSr.Controls.Add(radioButtonsSR[i]);
+                i += 1;
+            }
+            radioButtonsSR[i] = new RadioButton();
+            radioButtonsSR[i].Text = "ALL";
+            radioButtonsSR[i].Location = new System.Drawing.Point(10, 10 + i * 20);
+            radioButtonsSR[i].ForeColor = System.Drawing.SystemColors.Control;
+            radioButtonsSR[i].UseVisualStyleBackColor = true;
+            radioButtonsSR[i].Size = new System.Drawing.Size(85, 17);
+            radioButtonsSR[i].Tag="0";
+            this.groupBoxRbSr.Controls.Add(radioButtonsSR[i]);
+
+
+
+
             AddMessage (ClassConstMessage.WAITFILES);
             labelIPAdress.Text = $"IP Always {IPAdress}";
             ToolTip ttbuttonChooseFiles = new ToolTip();
@@ -63,13 +103,13 @@ namespace Server_for_SDRSharp
         }
         #endregion
         #region private functions
-        private string[] getFiles(String ext)
+        private string[] getFiles(String ext,bool multiSelect=true)
         {
             using (OpenFileDialog openFiles = new OpenFileDialog())
             {
                 openFiles.DefaultExt = ext;
-                openFiles.Filter = ext + " files|*." + ext;
-                openFiles.Multiselect = true;
+                openFiles.Filter = ext + " files|" + ext;
+                openFiles.Multiselect = multiSelect;
                 if (openFiles.ShowDialog() == DialogResult.OK)
                     return openFiles.FileNames;
                 return null;
@@ -81,7 +121,7 @@ namespace Server_for_SDRSharp
         /// tri les fichiers en fonction du sample rate au plus proche des sample rate de la source SDRSharp RTL-SDR_TCP 
         /// </summary>
         /// <param name="listFiles"></param>
-        private Dictionary<string, string> triSampleRate(string[] Files, List<int> listSampleRate)
+        private Dictionary<string, string> triSampleRate(string[] Files, List<int> listSampleRate,List<int> usedListSampleRate)
         {
             int sampleRate = 0;
             Dictionary<string, string> listFiles = new Dictionary<string, string>();
@@ -106,6 +146,17 @@ namespace Server_for_SDRSharp
                         }
                     }
                     listFiles.Add( file,nearSampleRate.ToString());
+                    bool found = false;
+                    foreach (int usr in usedListSampleRate)
+                    {
+                        if (usr == nearSampleRate)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        usedListSampleRate.Add(nearSampleRate);
                 }
             }
             return listFiles;
@@ -324,8 +375,17 @@ namespace Server_for_SDRSharp
                 myClassServerTCP.NEmissionForAllFiles = NEmissionForAllFiles;
                 myClassServerTCP.NEmissionForEachFile = NEmissionForEachFile;
                 myClassServerTCP.PortTCP = PortTCP;
-                myClassServerTCP.Files = Files;
-            await myClassServerTCP.Start();
+                myClassServerTCP.listFiles = listFiles;
+            int sampleRat = 0;
+            foreach (System.Windows.Forms.RadioButton sr in radioButtonsSR)
+            {
+               if(sr.Checked)
+                {
+                    Int32.TryParse(sr.Tag.ToString(), out sampleRat);
+                    break;
+                }
+            }
+            await myClassServerTCP.Start(sampleRat);
  
         }
         private void Stop()
@@ -361,7 +421,23 @@ namespace Server_for_SDRSharp
                 labelNbSendingForEachFile.Text = "";
                 labelNbSendingForAllFiles.Text = "";
                 labelNumFile.Text = "";
-                if (Files == null || Files.Count() == 0)
+
+                bool selectSR = false;
+                foreach (System.Windows.Forms.RadioButton sr in radioButtonsSR)
+                {
+                    if (sr.Checked)
+                    {
+                        selectSR = true;
+                        break;
+                    }
+                }
+                if (!selectSR)
+                 {
+                    MessageBox.Show("Choose sample rate", "Start", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                    if (Files == null || Files.Count() == 0)
                 {
                     MessageBox.Show("Choose files", "Start", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
@@ -473,21 +549,35 @@ namespace Server_for_SDRSharp
         }
         Dictionary<string, string> listFiles;  // = new Dictionary<string, string>();
         List<int> sampleRate = new List<int>() ;
+        List<int> usedListSampleRate = new List<int>() ;
         private void buttonChooseFiles_Click(object sender, EventArgs e)
         {
-            sampleRate.Add(250000);    //put this [0] if not sample rate in name file
-            sampleRate.Add(900000);
-            sampleRate.Add(1024000);
-            sampleRate.Add(1400000);
-            sampleRate.Add(1800000);
-            sampleRate.Add(1920000);
-            sampleRate.Add(2048000);
-            sampleRate.Add(2400000);
-            sampleRate.Add(2800000);
-            sampleRate.Add(3200000);
+            usedListSampleRate.Clear();
+          
             Files = getFiles("*.*");
-            listFiles=triSampleRate(Files,sampleRate);
-            AddMessage($"{ClassConstMessage.NBFILES}  {Files?.Count()}");
+            listFiles = triSampleRate(Files, sampleRate, usedListSampleRate);
+            usedListSampleRate.Sort();
+            foreach (System.Windows.Forms.RadioButton sr in radioButtonsSR)
+            {
+                sr.Enabled = false;
+            }
+            int i = 0;
+            foreach (int sr in sampleRate)
+            {
+                foreach (int srUse in usedListSampleRate)
+                {
+                    if (srUse == sr)
+                    {
+                        radioButtonsSR[i].Enabled = true;
+                        break;
+                    }
+                }
+                i += 1;
+            }
+            radioButtonsSR[radioButtonsSR.Count()-1].Enabled = true;
+
+
+                AddMessage($"{ClassConstMessage.NBFILES}  {Files?.Count()}");
 
         }
         private void buttonClearMessages_Click(object sender, EventArgs e)
@@ -521,6 +611,171 @@ namespace Server_for_SDRSharp
             {
                 MessageBox.Show(ex.Message, "Help->error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+        //private Dictionary<string, infoFile> listFiles;
+        private void buttonGenereBatch_Click(object sender, EventArgs e)
+        {
+            /*generate batch file for replay with rtl_433
+           -Use this version RTL433 with compile option BATCH
+                display only 
+                 -name file
+                 -protocol
+                 -model
+                 -some error
+           -transferer with button 'genere batch for rtl_433' le fichier FilesRTL433AllOK.bat where is rtl_433.exe
+           -copy FilesRTL433AllOK.bat to path where is rtl433.exe
+           -open console
+           -cd path where is rtl433.exe
+           -execute commande:  FilesRTL433AllOK.bat > testRTL_433.txt 2>&1
+
+           -tri with button 'tri result batch file for rtl433'
+            -result to file triTestRTL_433.txt to path where is rtl433.exe
+
+           -you can start again with other sample rates for the files that do not have one in their name
+           -you can parameter frequency to 838Mhz other filter if f>800Mhz
+            */
+
+            /*
+           test RTL_433--->https://github.com/merbanan/rtl_433_tests
+            -download zip and dezip where is rtl_433.exe to test
+            -open a console
+            -cd path where is rtl433.exe
+            -don't use 'make test' but
+                   python bin/run_test.py -I time --first-line
+
+            */
+
+            if (Files != null)
+                Files = null;
+
+            Files = getFiles("*.cu8");
+            if (Files == null)
+                return;
+  
+            //string srcPath = "C:\\marc\\tnt\\fichiers_cu8_et_wav\\fichiers_cu8\\rtl_433_tests-master\\rtl_433_tests-master";   // Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string dstFile ="FilesRTL433AllOK.bat";  // "C:\\marc\\tnt\\rtl_433\\rtl_433-master_06052024\\vs17_32\\Debug\\FilesRTL433AllOK.bat ";
+            //var files = from file in Directory.EnumerateFiles(srcPath, "*.cu8", SearchOption.AllDirectories)
+                        //select new
+                        //{
+                        //    File = file,
+                        //};
+            Int32 cptFile = 0;
+            try
+            {
+                using (Stream stream = new FileStream(dstFile, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    String Line = "";
+                    //String PathRtl433_EXE = "C:\\marc\\tnt\\rtl_433\\rtl_433-master_06052024\\vs17_32\\Debug\\rtl_433";
+                    String PathRtl433_EXE = "rtl_433";
+                    StreamWriter str = new StreamWriter(stream);
+                    str.WriteLine("cls");
+                    str.WriteLine("REM: " + DateTime.Now);
+                    foreach (var file in Files)
+                    {
+                        FileInfo f = new FileInfo(file);
+                        if (f.Length > 0)
+                        {
+                            //Int32 sampleRate = 0;FromFileName
+                            Int32 sampleRate = WavRecorder.GetSampleRateFromName(file); //lacrosse_g2750_915M_1000k.cu8,9_ford-unlock002.cu8
+                            if (sampleRate == -1)
+                            //{
+                                //sampleRateFromFileName = 250;
+                                sampleRate = 250000;
+                                //MessageBox.Show("No sample rate detected in the file name", "Cancel", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                //return -1;
+                            //}
+                            //else
+                                //sampleRate = sampleRateFromFileName;
+                            //if (sampleRateFromFileName > 0)
+                                
+                        //}
+                            //String Option = " -M protocol -s " + sampleRate.ToString() + " -C si -r ";
+                            String Option = " -F json " + " -C si -r ";
+                            Line = PathRtl433_EXE + Option + file;
+                            str.WriteLine(Line);
+                            cptFile++;
+                            //if (cptFile % 20 == 0)
+                            //    str.WriteLine("Pause");
+                        }
+                        f = null;
+                    }
+                    str.Flush();
+                    str = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+
+            MessageBox.Show("Batch file is completed for " + cptFile.ToString() + " files", "Translate cu8 nameFile with options to batch file", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        }
+
+        private void buttonTriResultBatch_Click(object sender, EventArgs e)
+        {
+            if (Files != null)
+                Files = null;
+
+            Files = getFiles("*.txt",false);
+            if (Files == null)
+                return;
+            FileInfo f = new FileInfo(Files[0]);
+            string path = f.DirectoryName + "\\";
+            Dictionary<String, Int32> listData = new Dictionary<String, Int32>();
+            try
+            {
+                Int32 Value = 0;
+                Stream stream = new FileStream(Files[0], FileMode.Open, FileAccess.Read, FileShare.None);
+                using (StreamReader str = new StreamReader(stream))
+                {
+                    while (str.Peek() >= 0)
+                    {
+                        String line = str.ReadLine();
+
+                        if (line != null && line.Length > 0)
+                        {
+                            if (line.Contains("Protocol  :"))
+                            {
+                                Value = int.Parse(line.Substring(12), CultureInfo.CurrentCulture);
+                            }
+                            else if (line.Contains("model     :"))
+                            {
+                                if (!listData.ContainsKey(line.Substring(12)))
+                                    listData.Add(line.Substring(12), Value);
+                                Value = 0;
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                //MessageBox.Show(e.Message, "Error import devices fct(deSerializeText).File:" + fileName.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            //Dictionary<String, String> listDataTrie = new Dictionary<String, String>();
+            //var sortOut = from entry in listData orderby entry.Key ascending select entry;
+            //var myList = aDictionary.ToList();
+
+            //myList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
+            try
+            {
+                Stream stream = new FileStream(path+"triTestRTL_433.txt", FileMode.Create, FileAccess.Write, FileShare.None);
+                using (StreamWriter str = new StreamWriter(stream))
+                {
+                    var ordered = listData.OrderBy(x => x.Value);
+                    foreach(KeyValuePair<string, Int32> entry in ordered)
+                    {
+                            str.WriteLine($"{entry.Value.ToString()} \t {entry.Key}");
+                            //Debug.WriteLine($"{entry.Value.ToString()} \t {entry.Key}");
+                    }
+                }
+            }
+            catch
+            {
+            }
+            MessageBox.Show("Tri file is completed for " + path + "triTestRTL_433.txt" , "Translate cu8 nameFile with options to batch file", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
         }
     }
 }

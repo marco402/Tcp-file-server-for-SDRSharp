@@ -49,13 +49,16 @@
             this.richTextBoxMessages = new System.Windows.Forms.RichTextBox();
             this.tableLayoutPanelMain = new System.Windows.Forms.TableLayoutPanel();
             this.groupBoxServer = new System.Windows.Forms.GroupBox();
+            this.groupBoxRbSr = new System.Windows.Forms.GroupBox();
             this.buttongenereWavTest = new System.Windows.Forms.Button();
             this.buttonExtractCu8 = new System.Windows.Forms.Button();
             this.buttonMessageToClipBoard = new System.Windows.Forms.Button();
             this.buttonInfosWav = new System.Windows.Forms.Button();
+            this.buttonGenereBatch = new System.Windows.Forms.Button();
             this.buttonConcateneWav = new System.Windows.Forms.Button();
             this.buttonClearMessages = new System.Windows.Forms.Button();
             this.buttonConcateneRawIQ = new System.Windows.Forms.Button();
+            this.buttonTriResultBatch = new System.Windows.Forms.Button();
             this.groupBoxTCPServer.SuspendLayout();
             this.tableLayoutPanelMain.SuspendLayout();
             this.groupBoxServer.SuspendLayout();
@@ -83,7 +86,7 @@
             this.groupBoxTCPServer.ForeColor = System.Drawing.SystemColors.Window;
             this.groupBoxTCPServer.Location = new System.Drawing.Point(9, 19);
             this.groupBoxTCPServer.Name = "groupBoxTCPServer";
-            this.groupBoxTCPServer.Size = new System.Drawing.Size(364, 181);
+            this.groupBoxTCPServer.Size = new System.Drawing.Size(364, 269);
             this.groupBoxTCPServer.TabIndex = 6;
             this.groupBoxTCPServer.TabStop = false;
             this.groupBoxTCPServer.Text = "TCP server for Source RTL-SDR TCP";
@@ -282,9 +285,9 @@
             // richTextBoxMessages
             // 
             this.richTextBoxMessages.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBoxMessages.Location = new System.Drawing.Point(3, 223);
+            this.richTextBoxMessages.Location = new System.Drawing.Point(3, 303);
             this.richTextBoxMessages.Name = "richTextBoxMessages";
-            this.richTextBoxMessages.Size = new System.Drawing.Size(880, 59);
+            this.richTextBoxMessages.Size = new System.Drawing.Size(880, 135);
             this.richTextBoxMessages.TabIndex = 22;
             this.richTextBoxMessages.Text = "";
             // 
@@ -298,31 +301,42 @@
             this.tableLayoutPanelMain.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanelMain.Name = "tableLayoutPanelMain";
             this.tableLayoutPanelMain.RowCount = 2;
-            this.tableLayoutPanelMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 220F));
+            this.tableLayoutPanelMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 300F));
             this.tableLayoutPanelMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelMain.Size = new System.Drawing.Size(886, 220);
+            this.tableLayoutPanelMain.Size = new System.Drawing.Size(886, 441);
             this.tableLayoutPanelMain.TabIndex = 24;
             // 
             // groupBoxServer
             // 
+            this.groupBoxServer.Controls.Add(this.groupBoxRbSr);
             this.groupBoxServer.Controls.Add(this.groupBoxTCPServer);
             this.groupBoxServer.Controls.Add(this.buttongenereWavTest);
             this.groupBoxServer.Controls.Add(this.buttonExtractCu8);
             this.groupBoxServer.Controls.Add(this.buttonMessageToClipBoard);
             this.groupBoxServer.Controls.Add(this.buttonInfosWav);
+            this.groupBoxServer.Controls.Add(this.buttonTriResultBatch);
+            this.groupBoxServer.Controls.Add(this.buttonGenereBatch);
             this.groupBoxServer.Controls.Add(this.buttonConcateneWav);
             this.groupBoxServer.Controls.Add(this.buttonClearMessages);
             this.groupBoxServer.Controls.Add(this.buttonConcateneRawIQ);
             this.groupBoxServer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxServer.Location = new System.Drawing.Point(3, 3);
             this.groupBoxServer.Name = "groupBoxServer";
-            this.groupBoxServer.Size = new System.Drawing.Size(880, 214);
+            this.groupBoxServer.Size = new System.Drawing.Size(880, 294);
             this.groupBoxServer.TabIndex = 23;
             this.groupBoxServer.TabStop = false;
             // 
+            // groupBoxRbSr
+            // 
+            this.groupBoxRbSr.Location = new System.Drawing.Point(390, 20);
+            this.groupBoxRbSr.Name = "groupBoxRbSr";
+            this.groupBoxRbSr.Size = new System.Drawing.Size(107, 268);
+            this.groupBoxRbSr.TabIndex = 21;
+            this.groupBoxRbSr.TabStop = false;
+            // 
             // buttongenereWavTest
             // 
-            this.buttongenereWavTest.Location = new System.Drawing.Point(686, 80);
+            this.buttongenereWavTest.Location = new System.Drawing.Point(768, 24);
             this.buttongenereWavTest.Name = "buttongenereWavTest";
             this.buttongenereWavTest.Size = new System.Drawing.Size(91, 32);
             this.buttongenereWavTest.TabIndex = 3;
@@ -333,7 +347,7 @@
             // 
             // buttonExtractCu8
             // 
-            this.buttonExtractCu8.Location = new System.Drawing.Point(783, 80);
+            this.buttonExtractCu8.Location = new System.Drawing.Point(768, 69);
             this.buttonExtractCu8.Name = "buttonExtractCu8";
             this.buttonExtractCu8.Size = new System.Drawing.Size(83, 32);
             this.buttonExtractCu8.TabIndex = 4;
@@ -346,7 +360,7 @@
             // 
             this.buttonMessageToClipBoard.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.buttonMessageToClipBoard.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonMessageToClipBoard.Location = new System.Drawing.Point(608, 136);
+            this.buttonMessageToClipBoard.Location = new System.Drawing.Point(808, 138);
             this.buttonMessageToClipBoard.Name = "buttonMessageToClipBoard";
             this.buttonMessageToClipBoard.Size = new System.Drawing.Size(63, 49);
             this.buttonMessageToClipBoard.TabIndex = 19;
@@ -358,7 +372,7 @@
             // 
             this.buttonInfosWav.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.buttonInfosWav.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonInfosWav.Location = new System.Drawing.Point(411, 22);
+            this.buttonInfosWav.Location = new System.Drawing.Point(611, 24);
             this.buttonInfosWav.Name = "buttonInfosWav";
             this.buttonInfosWav.Size = new System.Drawing.Size(123, 47);
             this.buttonInfosWav.TabIndex = 0;
@@ -366,11 +380,23 @@
             this.buttonInfosWav.UseVisualStyleBackColor = false;
             this.buttonInfosWav.Click += new System.EventHandler(this.buttonInfosWav_Click);
             // 
+            // buttonGenereBatch
+            // 
+            this.buttonGenereBatch.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.buttonGenereBatch.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonGenereBatch.Location = new System.Drawing.Point(611, 195);
+            this.buttonGenereBatch.Name = "buttonGenereBatch";
+            this.buttonGenereBatch.Size = new System.Drawing.Size(123, 42);
+            this.buttonGenereBatch.TabIndex = 2;
+            this.buttonGenereBatch.Text = "genere batch for rtl433";
+            this.buttonGenereBatch.UseVisualStyleBackColor = false;
+            this.buttonGenereBatch.Click += new System.EventHandler(this.buttonGenereBatch_Click);
+            // 
             // buttonConcateneWav
             // 
             this.buttonConcateneWav.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.buttonConcateneWav.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonConcateneWav.Location = new System.Drawing.Point(411, 144);
+            this.buttonConcateneWav.Location = new System.Drawing.Point(611, 146);
             this.buttonConcateneWav.Name = "buttonConcateneWav";
             this.buttonConcateneWav.Size = new System.Drawing.Size(123, 42);
             this.buttonConcateneWav.TabIndex = 2;
@@ -382,7 +408,7 @@
             // 
             this.buttonClearMessages.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.buttonClearMessages.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonClearMessages.Location = new System.Drawing.Point(540, 144);
+            this.buttonClearMessages.Location = new System.Drawing.Point(740, 146);
             this.buttonClearMessages.Name = "buttonClearMessages";
             this.buttonClearMessages.Size = new System.Drawing.Size(62, 41);
             this.buttonClearMessages.TabIndex = 20;
@@ -394,7 +420,7 @@
             // 
             this.buttonConcateneRawIQ.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.buttonConcateneRawIQ.ForeColor = System.Drawing.SystemColors.Window;
-            this.buttonConcateneRawIQ.Location = new System.Drawing.Point(411, 80);
+            this.buttonConcateneRawIQ.Location = new System.Drawing.Point(611, 82);
             this.buttonConcateneRawIQ.Name = "buttonConcateneRawIQ";
             this.buttonConcateneRawIQ.Size = new System.Drawing.Size(123, 47);
             this.buttonConcateneRawIQ.TabIndex = 1;
@@ -402,12 +428,24 @@
             this.buttonConcateneRawIQ.UseVisualStyleBackColor = false;
             this.buttonConcateneRawIQ.Click += new System.EventHandler(this.buttonConcateneRawIQ_Click);
             // 
+            // buttonTriResultBatch
+            // 
+            this.buttonTriResultBatch.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.buttonTriResultBatch.ForeColor = System.Drawing.SystemColors.Window;
+            this.buttonTriResultBatch.Location = new System.Drawing.Point(611, 246);
+            this.buttonTriResultBatch.Name = "buttonTriResultBatch";
+            this.buttonTriResultBatch.Size = new System.Drawing.Size(123, 42);
+            this.buttonTriResultBatch.TabIndex = 2;
+            this.buttonTriResultBatch.Text = "tri result batch file for rtl433";
+            this.buttonTriResultBatch.UseVisualStyleBackColor = false;
+            this.buttonTriResultBatch.Click += new System.EventHandler(this.buttonTriResultBatch_Click);
+            // 
             // FormServerForSDRSharp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(886, 220);
+            this.ClientSize = new System.Drawing.Size(886, 441);
             this.Controls.Add(this.tableLayoutPanelMain);
             this.Name = "FormServerForSDRSharp";
             this.Text = "TCP server for SDRSharp";
@@ -449,6 +487,9 @@
         private System.Windows.Forms.Button buttonClearMessages;
         protected internal System.Windows.Forms.Button buttonConcateneRawIQ;
         private System.Windows.Forms.Button buttonHelp;
+        private System.Windows.Forms.GroupBox groupBoxRbSr;
+        private System.Windows.Forms.Button buttonGenereBatch;
+        private System.Windows.Forms.Button buttonTriResultBatch;
     }
 }
 
