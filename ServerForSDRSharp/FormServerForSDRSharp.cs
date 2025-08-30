@@ -25,9 +25,7 @@ namespace Server_for_SDRSharp
     public partial class FormServerForSDRSharp : Form
     {
         #region CONST
-
         public const String IPAdress = "127.0.0.1";
-
         #endregion
         #region declare
         System.Windows.Forms.RadioButton[] radioButtonsSR;
@@ -37,6 +35,9 @@ namespace Server_for_SDRSharp
         private Int32 NEmissionForAllFiles = 0;
         private Int32 NEmissionForEachFile = 0;
         Int32 PortTCP = 1234;
+        Dictionary<string, string> listFiles;  // = new Dictionary<string, string>();
+        List<int> sampleRate = new List<int>();
+        List<int> usedListSampleRate = new List<int>();
         #endregion
         #region constructor
         public FormServerForSDRSharp()
@@ -82,7 +83,7 @@ namespace Server_for_SDRSharp
             AddMessage (ClassConstMessage.WAITFILES);
             labelIPAdress.Text = $"IP Always {IPAdress}";
             ToolTip ttbuttonChooseFiles = new ToolTip();
-            ttbuttonChooseFiles.SetToolTip(buttonChooseFiles, "Choose file Wav OR/AND raw IQ same sample rate.");
+            ttbuttonChooseFiles.SetToolTip(buttonFilesSelect, "Choose file Wav OR/AND raw IQ same sample rate.");
             ToolTip tttextBoxPort = new ToolTip();
             tttextBoxPort.SetToolTip(textBoxPort, "Port must be 1024 to 65535");
             ToolTip ttlabelNbFile = new ToolTip();
@@ -115,8 +116,31 @@ namespace Server_for_SDRSharp
                 return null;
             }
         }
-
-
+        private void treatFiles(string[] Files)
+        {
+            usedListSampleRate.Clear();
+            listFiles = triSampleRate(Files, sampleRate, usedListSampleRate);
+            usedListSampleRate.Sort();
+            foreach (System.Windows.Forms.RadioButton sr in radioButtonsSR)
+            {
+                sr.Enabled = false;
+            }
+            int i = 0;
+            foreach (int sr in sampleRate)
+            {
+                foreach (int srUse in usedListSampleRate)
+                {
+                    if (srUse == sr)
+                    {
+                        radioButtonsSR[i].Enabled = true;
+                        break;
+                    }
+                }
+                i += 1;
+            }
+            radioButtonsSR[radioButtonsSR.Count() - 1].Enabled = true;
+            AddMessage($"{ClassConstMessage.NBFILES}  {Files?.Count()}");
+        }
         /// <summary>
         /// tri les fichiers en fonction du sample rate au plus proche des sample rate de la source SDRSharp RTL-SDR_TCP 
         /// </summary>
@@ -162,7 +186,6 @@ namespace Server_for_SDRSharp
             return listFiles;
 
         }
-
             //#elif TESTRECURSIF && !TESTBATCH
             //            try
             //            {
@@ -277,11 +300,7 @@ namespace Server_for_SDRSharp
             //            }
             //            MessageBox.Show("Copyfile is completed for "+ cptFile.ToString() + " files", "Translate cu8 nameFile with options to batch file", MessageBoxButtons.OK, MessageBoxIcon.Information);
             //#endif
-
-
-
-
-            private void AddMessage(string message)
+        private void AddMessage(string message)
         {
             if (InvokeRequired)
             {
@@ -320,14 +339,14 @@ namespace Server_for_SDRSharp
                 {
                     if (Files == null || Files.Count() == 0)
                     {
-                        buttonChooseFiles.BackColor = SystemColors.ControlDarkDark;
+                        buttonFilesSelect.BackColor = SystemColors.ControlDarkDark;
                         buttonStartServer.Text = ClassConstMessage.WAITFILES;
-                        buttonChooseFiles.Enabled = true;
+                        buttonFilesSelect.Enabled = true;
                         labelNbFile.Text = $"{ClassConstMessage.NBFILES}  0";
                     }
                     else
                     {
-                        buttonChooseFiles.BackColor = Color.Green;
+                        buttonFilesSelect.BackColor = Color.Green;
                         buttonStartServer.Text = ClassConstMessage.STARTSERVER;
                         buttonStartServer.Enabled = true;
                         labelNbFile.Text = $"{ClassConstMessage.NBFILES}  {Files.Count()}";
@@ -337,7 +356,7 @@ namespace Server_for_SDRSharp
                 else if (message == ClassConstMessage.WAITFILES)
                 {
                     buttonStartServer.Text = message;  //foreColor black if disabled
-                    buttonChooseFiles.Enabled = true;
+                    buttonFilesSelect.Enabled = true;
                  }
                 else if (message == ClassConstMessage.STARTSERVER)
                 {
@@ -362,7 +381,6 @@ namespace Server_for_SDRSharp
                 Application.DoEvents();
             }
         }
- 
         private async  Task treatServerAsync()
         {
                 if (myClassServerTCP == null)
@@ -547,39 +565,11 @@ namespace Server_for_SDRSharp
         {
             e.Handled = testCharNum(e.KeyChar);
         }
-        Dictionary<string, string> listFiles;  // = new Dictionary<string, string>();
-        List<int> sampleRate = new List<int>() ;
-        List<int> usedListSampleRate = new List<int>() ;
-        private void buttonChooseFiles_Click(object sender, EventArgs e)
+        private void buttonFilesSelect_Click(object sender, EventArgs e)
         {
-            usedListSampleRate.Clear();
-          
             Files = getFiles("*.*");
-            listFiles = triSampleRate(Files, sampleRate, usedListSampleRate);
-            usedListSampleRate.Sort();
-            foreach (System.Windows.Forms.RadioButton sr in radioButtonsSR)
-            {
-                sr.Enabled = false;
-            }
-            int i = 0;
-            foreach (int sr in sampleRate)
-            {
-                foreach (int srUse in usedListSampleRate)
-                {
-                    if (srUse == sr)
-                    {
-                        radioButtonsSR[i].Enabled = true;
-                        break;
-                    }
-                }
-                i += 1;
-            }
-            radioButtonsSR[radioButtonsSR.Count()-1].Enabled = true;
-
-
-                AddMessage($"{ClassConstMessage.NBFILES}  {Files?.Count()}");
-
-        }
+            treatFiles(Files);
+         }
         private void buttonClearMessages_Click(object sender, EventArgs e)
         {
             richTextBoxMessages.Text="";
@@ -598,8 +588,19 @@ namespace Server_for_SDRSharp
                 myClassServerTCP = null;
             }
         }
-        #endregion
-
+        private void buttonFolderSelect_Click(object sender, EventArgs e)
+        {
+            String folder = String.Empty;
+            if (folderBrowserDialogChooseFolder.ShowDialog() == DialogResult.OK)
+            {
+                folder = folderBrowserDialogChooseFolder.SelectedPath;
+            }
+            if (checkBoxSubFolder.Checked)
+                Files = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories);
+            else
+                Files = Directory.GetFiles(folder, "*.*", SearchOption.TopDirectoryOnly);
+            treatFiles(Files);
+        }
         private void buttonHelp_Click(object sender, EventArgs e)
         {
             try
@@ -711,7 +712,6 @@ namespace Server_for_SDRSharp
             MessageBox.Show("Batch file is completed for " + cptFile.ToString() + " files", "Translate cu8 nameFile with options to batch file", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
-
         private void buttonTriResultBatch_Click(object sender, EventArgs e)
         {
             if (Files != null)
@@ -777,7 +777,537 @@ namespace Server_for_SDRSharp
             MessageBox.Show("Tri file is completed for " + path + "triTestRTL_433.txt" , "Translate cu8 nameFile with options to batch file", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
-    }
+        #endregion
+        #region extract subdevices RTL_433
+
+
+
+        /// <summary>
+        /// get the list of protocol number + name
+        /// </summary>
+        /// <param name="pathProto"></param>
+        /// <param name="listProto"></param>
+        /// <returns></returns>
+        private Dictionary<Int32, propertyProtocol> getlistProtocol(String pathProto,Dictionary<Int32, propertyProtocol> listProto)
+        {
+            try
+            {
+                Stream stream = new FileStream(pathProto, FileMode.Open, FileAccess.Read, FileShare.None);
+                using (StreamReader str = new StreamReader(stream))
+                {
+                    Int32 numberProto = 1;
+                    //while (str.Peek() >= 0)
+                    //{
+                    //    String line = str.ReadLine();
+                    //    if (line.Contains("#define DEVICES "))
+                    //        break;
+                    //}
+                    while (str.Peek() >= 0)
+                    {
+                       String line = str.ReadLine();
+                        //if (!line.Contains("DECL"))
+                        //    break;
+                        if (line.Contains("    DECL"))
+                        {
+                            propertyProtocol proto = new propertyProtocol();
+                            proto.Model = line.Replace("DECL(", "").Replace(") \\", "").Trim();
+                            listProto.Add(numberProto,proto);
+                            numberProto++;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+            return listProto;
+        }
+        /// <summary>
+        /// get details for each protocol: enabled, modulation, detail name
+        /// </summary>
+        /// <param name="ListDevices"></param>
+        /// <param name="listProtocol"></param>
+        /// <returns></returns>
+        private Dictionary<Int32, propertyProtocol> getDetailsProtocol(string[] ListDevices,Dictionary<Int32, propertyProtocol> listProtocol, Int32[] listFunct)
+        {
+                Int32 indiceFile = 0;
+            foreach (String fileDevice in ListDevices)
+            {
+
+                Int32 nbFunct = 0;
+                try
+                {
+                    Stream stream = new FileStream(fileDevice, FileMode.Open, FileAccess.Read, FileShare.None);
+                    using (StreamReader strFileDevice = new StreamReader(stream))
+                    {
+                        String Line = String.Empty;
+                        while (strFileDevice.Peek() >= 0)
+                        {
+                            Line = strFileDevice.ReadLine();
+
+                            if (Line.Contains("r_device") && Line.Contains("const") && Line.Contains("="))
+                            {
+                                int NumberProtocol = 0;
+                                propertyProtocol proto=new propertyProtocol();
+                                String[] tabNameProto = Line.Split(' ');
+                                int i = 0;
+                                for (; i < tabNameProto.Count(); i++)
+                                {
+                                    if (tabNameProto[i].Trim() == "const")
+                                        break;
+                                }
+                                i++;
+
+                                foreach (var tt in listProtocol)
+                                {
+                                    if (tt.Value.Model==tabNameProto[i])  //invert for r_device const tpms_renault_0435r && r_device const tpms_renault
+                                    {
+                                        NumberProtocol = tt.Key;
+                                        proto.Model = tt.Value.Model;
+                                        break;
+                                    }
+                                }
+                                while (1 == 1)
+                                {
+                                    Line = strFileDevice.ReadLine();
+                                    if (Line.Contains("};"))
+                                    {
+                                        proto.FileName = Path.GetFileName(fileDevice);
+                                        proto.NumberProtocol=NumberProtocol;
+                                        listProtocol[NumberProtocol] = proto;
+                                        proto = null;
+                                        break;
+                                    }
+                                    else if (Line.Contains(".name"))
+                                    {
+                                        String[] tabName = Line.Split('=');
+                                        proto.Detail = tabName[1].Replace(",", "").Replace('"', ' ').Trim();
+                                    
+                                    }
+                                    else if (Line.Contains(".disabled"))
+                                    {
+                                        int start = Line.IndexOf('=');
+                                        int end = Line.IndexOf(',');
+                                        proto.Disabled = Convert.ToInt32(Line.Substring(start + 1, end - start - 1));
+                                    }
+                                    else if (Line.Contains(".modulation"))
+                                    {
+                                        int start = Line.IndexOf('=');
+                                        int end = Line.IndexOf(',');
+                                        proto.Modulation = Line.Substring(start + 1, end - start - 1);
+                                    }
+                                    else if (Line.Contains(".decode_fn"))
+                                    {
+                                        int start = Line.IndexOf('&');
+                                        int end = Line.IndexOf(',');
+                                        proto.Decode_fn = Line.Substring(start + 1, end - start - 1);
+                                        nbFunct++;
+                                    }
+                                }
+                            } 
+                        }
+                    }
+                }
+                catch { }
+                listFunct[indiceFile] = nbFunct;
+                indiceFile += 1;
+             }
+            return listProtocol;
+        }
+        private Int32  getModels(StreamReader strFileDevice, String[] subDevice)
+        {
+            Int32 cptDevice = 0;
+            bool found = false;
+            while (1 == 1)
+            {
+
+                String Line = strFileDevice.ReadLine();
+                if (Line.Contains(");") && found)   //
+                {
+                    //found = false;
+                    break; ;
+                }
+
+                else if ((Line.Contains("model") && Line.Contains("DATA_STRING")) || Line.Contains("model") && Line.Contains("NULL")) //&& proto.Name == null
+                {
+                    String[] tabNameProto = Line.Split(',');
+                    int j = 0;
+                    for (; j < tabNameProto.Count(); j++)
+                    {
+                        if (tabNameProto[j].Trim() == "DATA_STRING" || tabNameProto[j].Trim() == "NULL")
+                            break;
+                    }
+                    if (Line.Contains("?") && Line.Contains(":"))
+                    {
+                        //String[] tabProto2 = tabNameProto[j + 1].Split('?');
+                        //String[] tabProto3 = tabProto2[1].Split(':');
+                        //subDevice[cptDevice] = tabProto3[0].Replace('"', ' ').Trim();
+                        //cptDevice++;
+                        //subDevice[cptDevice] = tabProto3[1].Replace('"', ' ').Trim();
+                        //cptDevice++;
+                        String[] tabProto2 = tabNameProto[j + 1].Split(',');
+                        for (int i = 0; i < tabProto2.Count(); i++)
+                        {
+                            if (tabProto2[i].Contains(":"))
+                            {
+                                String[] tabProto3 = tabProto2[i].Split(':');
+                                if(tabProto3[0].Contains("?"))   //ex:acurite.c
+                                { 
+                                    String[] tabProto4 = tabProto3[0].Split('?');
+                                    subDevice[cptDevice] = tabProto4[1].Replace('"', ' ').Trim();
+                                }
+                                else
+                                {
+                                    subDevice[cptDevice] = tabProto3[0].Replace('"', ' ').Trim();
+                                }
+                                cptDevice++;
+                                found = true;
+                                subDevice[cptDevice] = tabProto3[1].Replace('"', ' ').Trim();
+                                cptDevice++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        subDevice[cptDevice] = tabNameProto[j + 1].Trim();
+                        cptDevice++;
+                        found = true;
+                    }
+                }
+            }
+            return cptDevice;
+        }
+
+        //private String[]  getNbFunction(string[] ListDevices)
+        //{ 
+        //    String[] listFunct = new String[30];
+
+
+
+
+        //    return listFunct;
+        //}
+        /// <summary>
+        /// Add subDevices for each protocol
+        /// name are in     data_t *data = data_make(
+        ///                           "model",            "",             DATA_STRING,    "Microchip-HCS200",
+        /// -several model into same data_make
+        /// -several data_make with model, in this cas found good protocol
+        ///       start from decode_fn until data_make
+        /// </summary>
+        /// <param name="ListDevices"></param>
+        /// <param name="listProtocol"></param>
+        /// <returns></returns>
+        private Dictionary<String, propertyProtocol> getSubDeviceForEachProtocol(string[] ListDevices,Dictionary<Int32, propertyProtocol> listProtocol, Int32[] listFunct)
+        {
+            propertyProtocol[] proto;
+            Dictionary<String, propertyProtocol> listSubDevices= new Dictionary<String, propertyProtocol>();
+            Int32 cptDevice = 0;
+            Int32 cptProto = 0;
+            String Funct = String.Empty;
+            String[] subDevice = new String[30];
+
+            //String[] listFunct =getNbFunction(); //new String[30];
+            Int32 indiceFile = 0;
+            foreach (String fileDevice in ListDevices)
+            {
+                //if (listFunct[indiceFile] != 2)
+                //{
+                //    indiceFile++;
+                //    continue;
+                //}
+                try
+                {
+                    //int N = 1;
+                    proto = new propertyProtocol[10];
+                    for (int i=0;i<10;i++)
+                        proto[i] = new propertyProtocol();
+                    proto[cptProto].Disabled = 0;
+
+                    Stream stream = new FileStream(fileDevice, FileMode.Open, FileAccess.Read, FileShare.None);
+                    using (StreamReader strFileDevice = new StreamReader(stream))
+                    {
+                        String Line=String.Empty;
+                        while (strFileDevice.Peek() >= 0)
+                        {
+                            Line = strFileDevice.ReadLine();
+
+                            if (Line.Contains("static") && (Line.Contains("int32_t")||Line.Contains("int") ) && Line.Contains("r_device"))
+                            {
+                                int i = 0;
+                                String[] tabName = Line.Split('(');
+                                String[] tabNameProto = tabName[0].Split(' ');
+                                for (; i < tabNameProto.Count(); i++)
+                                {
+                                    if (tabNameProto[i].Trim() == "int" || tabNameProto[i].Trim() == "int32_t"|| tabNameProto[i].Trim() == "uint16_t")
+                                        break;
+                                }
+                                Funct = tabNameProto[i + 1];
+                            }
+                            if (Line.Contains("data_make("))
+                                cptDevice = getModels(strFileDevice,subDevice);
+                            if (Line.Contains("data_str") && Line.Contains("*data"))  //special case honeywell_cm921.c
+                                 cptDevice += 1;
+                        }
+                        bool found = false;
+                        if(cptDevice>0)
+                        {
+                            //search listProtocol.Value.Function==Func
+                            foreach (var tt in listProtocol) 
+                            {
+                                
+                                if (tt.Value.Decode_fn == Funct)  //invert for r_device const tpms_renault_0435r && r_device const tpms_renault
+                                {
+                                    for(int d=0;d< cptDevice;d++)
+                                    {//
+                                        propertyProtocol prot=tt.Value.Clone(tt.Value);
+                                        prot.SubDevice = subDevice[d];
+                                        listSubDevices.Add(subDevice[d] + "_" + tt.Value.Detail, prot);  //add detail to key for listFunct[indiceFile] != 2 and DSC
+                                        found = true;
+                                        prot = null;
+                                        //continue;
+                                        //NumberProtocol = tt.Key;
+                                        //proto.Name = tt.Value.Name;
+                                    }
+                               //break;
+                                }
+                                //if (found)
+                                //    break;
+                            }
+                            //if not found call function ex:oregon_scientific
+                            if(!found)
+                            {
+
+                            }
+                            found = false;
+
+
+                            //if (proto[0].Name != null && proto[0].NumberProtocol != 0 && subDevice[0] != String.Empty)
+                            //{
+                            //    FileInfo f = new FileInfo(fileDevice);
+                            //    proto[0].FileName = f.Name;
+                            //    f = null;
+                            //    try
+                            //    {
+                            //        for (int q = 0; q < cptDevice; q++)
+                            //        {
+                            //            //if(listSubDevices.ContainsKey(subDevice[q]))
+                            //            //{
+                            //            //    listSubDevices.Add(subDevice[q]+"_"+N.ToString(), proto);
+                            //            //    N++;
+                            //            //}
+                            //            //elsesubDevice[q]
+                            //            listSubDevices.Add(subDevice[q], proto[0]); //N for ex:hcs200 and hcs200_fsk 1data_t *data = data_make for 2 r_device const
+                            //                                                        //N++;+N.ToString()
+                            //        }
+                            //        //break;
+                            //    }
+                            //    catch { }
+
+                            //}
+                            //proto = null;
+                            //proto = new propertyProtocol[10];
+                        }
+                        //if (cptProto>0)
+                        //{ 
+                        //    for(int p= 0; p< cptProto; p++)
+                        //    {
+                        //       if (proto[p].Name !=null  && proto[p].NumberProtocol != 0  && subDevice[0] != String.Empty)
+                        //       {
+                        //            FileInfo f = new FileInfo(fileDevice);
+                        //            proto[p].FileName = f.Name;
+                        //            f = null;
+                        //            try
+                        //            {
+                        //                //    for (int q = 0; q < cptDevice; q++)
+                        //                //    {
+                        //                if (listSubDevices.ContainsKey(subDevice[p]))  //ex elv.c
+                        //                {
+                        //                    listSubDevices[subDevice[p]].Name=proto[p].Name;
+                        //                }
+                        //                else
+                        //                    listSubDevices.Add(subDevice[0]+"_"+p.ToString(), proto[p]); //N for ex:hcs200 and hcs200_fsk 1data_t *data = data_make for 2 r_device const
+                        //                    //N++;+N.ToString()
+                        //                //  }
+                        //                //break;
+                        //            }
+                        //            catch { }
+                        //       }
+                        //    }
+                        //    //proto = null;
+                        //    //proto = new propertyProtocol[10];
+                        //}
+                        proto = null;
+                        for (int k = 0; k < 30; k++)
+                            subDevice[k] = "";
+                        cptDevice = 0;
+                        cptProto = 0;
+                    }
+                }
+                catch { }
+                indiceFile++;
+                proto = null;
+                proto = new propertyProtocol[10];
+                cptDevice = 0;
+
+            }
+            Dictionary<String, propertyProtocol> sortedDictionary = listSubDevices.OrderBy(pair => (String)pair.Value.Model).ToDictionary( pair => pair.Key, pair => pair.Value);
+            return sortedDictionary;
+        }
+        private string[] ListDevices;
+        Dictionary<Int32, propertyProtocol> listProtocol;
+        Dictionary<Int32, propertyProtocol> dictProtocol;
+
+        Dictionary<String, propertyProtocol> listSubDevices;
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonGetDevicesList_Click(object sender, EventArgs e)
+        {
+            //MessageBox.Show("Choose folder src from RTl_433", "Create file sub devices RTL_433", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            String folderSrc = String.Empty;
+            folderSrc = "C:\\marc\\tnt\\rtl_433\\rtl_433-master_13_07_2025\\src";
+            //if (folderBrowserDialogChooseFolder.ShowDialog() == DialogResult.OK)
+            //{
+            //    folderSrc = folderBrowserDialogChooseFolder.SelectedPath;
+            //}
+            String folderDevices = folderSrc+"\\devices";
+            String fullPathProto = folderSrc + "\\..\\include\\rtl_433_devices.h";
+            ListDevices = Directory.GetFiles(folderDevices, "*.*", SearchOption.TopDirectoryOnly);
+            listProtocol = new Dictionary<Int32, propertyProtocol>();
+            listProtocol = getlistProtocol( fullPathProto,listProtocol);
+            Int32[] listFunct =new Int32[ListDevices.Count()];
+            dictProtocol = new Dictionary<Int32, propertyProtocol>();
+            dictProtocol = getDetailsProtocol(ListDevices,listProtocol,listFunct);
+            savelistProtocol(listProtocol, folderSrc+ "\\Protocol.txt");
+
+            listSubDevices = getSubDeviceForEachProtocol(ListDevices, listProtocol,listFunct);
+
+            //savelistSubDevices(listSubDevices, folderSrc + "\\SubDevices.txt");
+            //MessageBox.Show($"Create file is completed for { folderSrc} : {listProtocol.Count} Protocol ", "Create file sub Protocol RTL_433", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            listSubDevices=processDuplicates(listSubDevices);
+            savelistSubDevices(listSubDevices, folderSrc + "\\SubDevices.txt");
+            MessageBox.Show($"Create file is completed for { folderSrc} : {listSubDevices.Count} Sub devices ", "Create file sub Devices RTL_433", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        }
+        /// <summary>
+        /// Correct duplicates models
+        ///         -->2 r_device and only one model                                                                        ex:dsc.c    
+        ///         -->	if (msg_type == 5)	else if (msg_type == 6)                                                         ex:fineoffset_wh1050.c
+        ///         -->if ((b[0] & 0xf0) == 0) {  else if ((b[0] & 0xf0) == 64) {                                           ex:current_cost.c
+	    ///         -->case 0: // Temperature  case 1 2 7                                                                   ex:lacrossews.c
+        ///         -->if ((humidity == LACROSSE_TX29_NOHUMIDSENSOR) || (humidity == LACROSSE_TX25_PROBE_FLAG)) { 	else    ex:lacrosse_tx35.c
+        ///         
+        /// if devices are identical---> SubDevice = model
+        /// 
+        /// </summary>
+        /// <param name="listSubDevices"></param>
+        /// <returns></returns>
+        private Dictionary<String, propertyProtocol> processDuplicates(Dictionary<String, propertyProtocol>listSubDevices)
+        {
+            Dictionary<String, propertyProtocol> newListSubDevices=new Dictionary<String, propertyProtocol>();
+            Int32 indice = 1;
+            foreach (KeyValuePair<String, propertyProtocol> devices in listSubDevices)
+            {
+                if(devices.Value.found == false)
+                    newListSubDevices.Add(devices.Key, devices.Value);
+                for (int i=indice;i<listSubDevices.Count;i++)
+                {
+                    if((devices.Value.Model == listSubDevices.ElementAt(i).Value.Model) && devices.Value.found == false)
+                    {
+                        listSubDevices.ElementAt(i).Value.found = true;
+                        propertyProtocol newDevice = listSubDevices.ElementAt(i).Value.Clone(listSubDevices.ElementAt(i).Value);
+                        newDevice.Model = newDevice.SubDevice;
+                        newListSubDevices.Add(listSubDevices.ElementAt(i).Key, newDevice);
+                        newDevice = null;   //no break > 2 ex:gridstream.c
+                    }
+                }
+                indice++;
+            }
+            indice = 1;
+            foreach (KeyValuePair<String, propertyProtocol> devices in newListSubDevices)
+            {
+                if (indice == newListSubDevices.Count)
+                    break;
+                if(devices.Value.Model == newListSubDevices.ElementAt(indice).Value.Model)
+                {
+                    MessageBox.Show("test duplicate model",$"duplicate {devices.Value.Model}", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+               indice++;
+            }
+
+            return newListSubDevices;
+        }
+        private void savelistProtocol(Dictionary<Int32, propertyProtocol> listProtocol,String nameFile)
+        {
+            try
+            {
+                Stream stream = new FileStream(nameFile, FileMode.Create, FileAccess.Write, FileShare.None);
+                using (StreamWriter str = new StreamWriter(stream))
+                {
+                    String Line = $"Sub device\tDetails\tNumber protocol\tDisabled\tModulation\tFileName\n";
+                    str.Write(Line);
+                    foreach (KeyValuePair<Int32, propertyProtocol> proto in listProtocol)
+                    {
+                        Line = $"{proto.Value.Model}\t{proto.Value.Detail}\t{proto.Value.NumberProtocol.ToString()}\t{proto.Value.Disabled.ToString()}\t{proto.Value.Modulation}\t{proto.Value.FileName}\n";
+                        str.Write(Line);
+                    }
+                }
+            }
+            catch { }
+        }
+
+
+        private void savelistSubDevices(Dictionary<String, propertyProtocol> listSubDevices,String nameFile)
+        {
+            try
+            {
+                Stream stream = new FileStream(nameFile, FileMode.Create, FileAccess.Write, FileShare.None);
+                using (StreamWriter str = new StreamWriter(stream))
+                {
+                    String Line = $"Sub device\tName\tDisabled\tNumber protocol\tFileName\n";
+                    str.Write(Line);
+                    foreach (KeyValuePair<String, propertyProtocol> subDevice in listSubDevices)
+                    {
+                        Line = $"{subDevice.Value.Model}\t{subDevice.Value.Detail}\t{subDevice.Value.Disabled.ToString()}\t{subDevice.Value.NumberProtocol.ToString()}\t{subDevice.Value.FileName}\n";
+                        str.Write(Line);
+                    }
+                }
+            }
+            catch { }
+        }
+        private class propertyProtocol
+        {
+            public String Model { get; set; }
+            public String SubDevice { get; set; }
+            public String Modulation { get; set; }
+            public String Decode_fn { get; set; }
+            private int _NumberProtocol=0;
+            public int NumberProtocol
+            {
+                get { return _NumberProtocol; }
+                set { _NumberProtocol = value; }
+            }
+            private int _Disabled = 0;
+            public int Disabled
+            {
+                get { return _Disabled; }
+                set { _Disabled = value; }
+            }
+            public String FileName { get; set; }
+            public String Detail { get; set; }
+            public propertyProtocol Clone(propertyProtocol propProto)
+            {
+                 return (propertyProtocol)propProto.MemberwiseClone();
+            }
+            public bool found { get; set; }
+        }
+        #endregion
+     }
 }
 
 
