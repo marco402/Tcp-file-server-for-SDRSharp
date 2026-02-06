@@ -1,3 +1,7 @@
+##
+-Once a security key is set up, the executable is transferred to release  
+              (button on the main repository window).  
+-Version change: version 0.0.0.5.  
 
 ## Transmit wav or raw IQ files to SDRSharp source RTL-SDR TCP.  
     Use:  
