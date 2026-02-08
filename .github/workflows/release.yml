@@ -1,0 +1,155 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Locate MSBuild
+        id: locate
+        shell: pwsh
+        run: |
+          $msbuild = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" `
+            -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
+          echo "MSBUILD_PATH=$msbuild" >> $env:GITHUB_ENV
+
+      - name: Build solution
+        shell: pwsh
+        run: |
+          & "$env:MSBUILD_PATH" "ServerForSDRSharp.sln" /p:Configuration=Release
+
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          $zipName = "ServerForSDRSharp-$tag.zip"
+          Compress-Archive -Path "ServerForSDRSharp/bin/Release/*" -DestinationPath $zipName
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-zip
+          path: ServerForSDRSharp-*.zip
+
+
+  sign:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Download ZIP artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-zip
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.5.0
+
+      - name: Request OIDC token
+        id: oidc
+        run: |
+          echo "token=$(curl -sLS \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sigstore" \
+            | jq -r '.value')" >> $GITHUB_OUTPUT
+
+      - name: Sign ZIP with Cosign
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          FILE="ServerForSDRSharp-${TAG}.zip"
+
+          cosign sign-blob \
+            --yes \
+            --identity-token "${{ steps.oidc.outputs.token }}" \
+            --output-signature "${FILE}.sig" \
+            --output-certificate "${FILE}.pem" \
+            "${FILE}"
+
+
+      - name: Generate SHA256SUMS
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          FILE="ServerForSDRSharp-${TAG}.zip"
+          sha256sum "$FILE" > SHA256SUMS
+
+      - name: Generate VERIFY.txt
+        shell: bash
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          FILE="ServerForSDRSharp-${TAG}.zip"
+
+          echo "===========================================================" > VERIFY.txt
+          echo " File Integrity and Authenticity Verification (Windows)" >> VERIFY.txt
+          echo "===========================================================" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "This file explains how to verify that the archive" >> VERIFY.txt
+          echo "\"${FILE}\" is authentic and has not been modified after being published." >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "-----------------------------------------------------------" >> VERIFY.txt
+          echo " 1) Verify file integrity (SHA-256)" >> VERIFY.txt
+          echo "-----------------------------------------------------------" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "Open PowerShell in the folder containing the ZIP file and run:" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "    CertUtil -hashfile ${FILE} SHA256" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "Compare the output with the value inside the \"SHA256SUMS\"" >> VERIFY.txt
+          echo "file included in this release. Both values must match." >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "-----------------------------------------------------------" >> VERIFY.txt
+          echo " 2)Installing cosign on Windows" >> VERIFY.txt
+          echo "-----------------------------------------------------------" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo " - Download cosign-windows-amd64.exe from \"https://github.com/sigstore/cosign/releases\" \`"  >> VERIFY.txt
+          echo " - Rename cosign-windows-amd64.exe to cosign.exe." >> VERIFY.txt
+          echo " - Place it in the folder with the downloaded files." >> VERIFY.txt
+          echo "-----------------------------------------------------------" >> VERIFY.txt
+          echo " 3) Verify authenticity (Cosign signature)" >> VERIFY.txt
+          echo "-----------------------------------------------------------" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "Download the following files from the release:" >> VERIFY.txt
+          echo " - ${FILE}" >> VERIFY.txt
+          echo " - ${FILE}.sig" >> VERIFY.txt
+          echo " - ${FILE}.pem" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "Then run the following command in PowerShell:" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "    cosign verify-blob \`" >> VERIFY.txt
+          echo "      --certificate ${FILE}.pem \`" >> VERIFY.txt
+          echo "      --signature ${FILE}.sig \`" >> VERIFY.txt
+          echo "      --certificate-identity-regexp \"github.com/marco402/Tcp-file-server-for-SDRSharp\" \`" >> VERIFY.txt
+          echo "      --certificate-oidc-issuer \"https://token.actions.githubusercontent.com\" \`" >> VERIFY.txt
+          echo "      ${FILE}" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "If everything is correct, Cosign will display:" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "    Verified OK" >> VERIFY.txt
+          echo "" >> VERIFY.txt
+          echo "===========================================================" >> VERIFY.txt
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ServerForSDRSharp-*.zip
+            ServerForSDRSharp-*.zip.sig
+            ServerForSDRSharp-*.zip.pem
+            SHA256SUMS
+            VERIFY.txt
